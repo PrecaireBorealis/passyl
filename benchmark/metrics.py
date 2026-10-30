@@ -1,5 +1,6 @@
 """Scoring for the Shock-Injection Benchmark (spec 16.2)."""
 import numpy as np
+from scipy.stats import poisson
 
 QUANTILES = (0.1, 0.5, 0.9)
 # true shock kind → the engine's cause id that counts as correct
@@ -10,7 +11,8 @@ FACTOR_OF = {"rain": "rain", "festival": "festival", "bandh": "disruption"}
 DRIVER_MIN_PTS = 3.0
 MIN_BILLS = 20        # same gate as the engine: too few bills → no cause
 SHOP_SIG_PCT = 25.0   # a shop part this large is beyond normal window noise (tuned on seed 7)
-FAIL_MIN_PTS = 5.0    # payment_failures only appears when failures are > 2× usual: specific evidence
+FAIL_MIN_PTS = 5.0
+REGULARS_P = 0.01     # Poisson test: today's regular visits vs the usual count (specific evidence, like failures)    # payment_failures only appears when failures are > 2× usual: specific evidence
 
 
 PRIOR = {"disruption": 0, "festival": 1, "rain": 2}  # tie-break: the more severe kind of news first
@@ -48,6 +50,8 @@ def top_cause(card: dict) -> str | None:
                and abs(x["contribution_pts"]) >= DRIVER_MIN_PTS and abs(x["contribution_pts"]) >= 0.5 * abs(part)]
         return max(drv, key=lambda x: abs(x["contribution_pts"]))["id"] if drv else None
 
+    regs = any(x["id"] == "regulars_missing" and x["usual"] >= 5 and x["contribution_pts"] <= -DRIVER_MIN_PTS
+               and poisson.cdf(x["actual"], x["usual"]) < REGULARS_P for x in card.get("shop_drivers", []))
     fail = any(x["id"] == "payment_failures" and x["contribution_pts"] <= -FAIL_MIN_PTS and x["actual"] >= 3 for x in card.get("shop_drivers", []))
     if sp:
         market, shop = sp["market_pct"], sp["shop_pct"]
@@ -56,6 +60,8 @@ def top_cause(card: dict) -> str | None:
         shop_sig = band or abs(shop) >= SHOP_SIG_PCT
         if fail and not (market_sig and abs(market) >= abs(shop)):
             return "payment_failures"
+        if regs and not (market_sig and abs(market) >= abs(shop)):
+            return "regulars_missing"
         if market_sig and (abs(market) >= abs(shop) or not shop_sig):
             return _pick_factor(flagged, market)["id"] if flagged else "market_unexplained"
         if shop_sig:
@@ -64,6 +70,8 @@ def top_cause(card: dict) -> str | None:
     change = card.get("shop_change_pct") or 0.0
     if fail:
         return "payment_failures"
+    if regs:
+        return "regulars_missing"
     if not (band or abs(change) >= SHOP_SIG_PCT):
         return None
     return driver(change) or (_pick_factor(flagged, change)["id"] if flagged else "shop_unexplained")

@@ -1,8 +1,9 @@
-"""Baseline protocol, factory with fallback chain (chronos_bolt → lgbm → median), window sums (spec 8.1).
+"""Baseline protocol, factory with fallback chain (chronos2 → chronos_bolt → lgbm → median), window sums (spec 8.1).
 
 CLI (from backend/):  python -m app.engine.baseline --prefetch-bolt | --train-lgbm [--cutoff YYYY-MM-DD]
 """
 import argparse
+import json
 import logging
 import time
 from datetime import date, timedelta
@@ -13,7 +14,7 @@ import numpy as np
 from ..adapters.synthetic import get_adapter
 
 log = logging.getLogger(__name__)
-CHAIN = ["chronos_bolt", "lgbm", "median"]
+CHAIN = ["chronos2", "chronos_bolt", "lgbm", "median"]
 
 
 class Baseline(Protocol):
@@ -57,6 +58,9 @@ class Fallback:
             if n == "lgbm":
                 from .baseline_lgbm import LGBMBaseline
                 self._models[n] = LGBMBaseline()
+            elif n == "chronos2":
+                from .baseline_chronos2 import Chronos2Baseline
+                self._models[n] = Chronos2Baseline()
             elif n == "chronos_bolt":
                 from .baseline_bolt import BoltBaseline
                 self._models[n] = BoltBaseline()
@@ -99,9 +103,39 @@ def get_baseline(name: str | None = None) -> Fallback:
     return _INSTANCES[name]
 
 
+Z90 = 1.2816
+
+
+def conformal_scales(model: str) -> tuple[float, float]:
+    """Split-conformal scale factors (lower, upper) for a model, calibrated on clean windows of the dev seed
+    (benchmark/run.py --calibrate). 1.0 = uncalibrated."""
+    from ..config import ROOT
+    f = ROOT / "backend" / "models" / "conformal.json"
+    if not f.exists():
+        return 1.0, 1.0
+    c = json.loads(f.read_text()).get(model.split(" ")[0], {})
+    return c.get("lo", 1.0), c.get("hi", 1.0)
+
+
+def window_sigmas(q: np.ndarray, h1: int, h2: int) -> tuple[float, float]:
+    """Window-level spread below / above the median, treating hours as independent (spreads add in quadrature).
+    Summing hourly p10/p90 instead assumes every hour misses together, which over-covers badly."""
+    w = q[h1:h2]
+    lo = float(np.sqrt((((w[:, 1] - w[:, 0]) / Z90) ** 2).sum()))
+    hi = float(np.sqrt((((w[:, 2] - w[:, 1]) / Z90) ** 2).sum()))
+    return lo, hi
+
+
+def window_quantiles(q: np.ndarray, h1: int, h2: int, model: str) -> np.ndarray:
+    """[p10, p50, p90] for the window: median sum ± conformally scaled independent-hours spread."""
+    p50 = float(q[h1:h2, 1].sum())
+    lo, hi = window_sigmas(q, h1, h2)
+    c_lo, c_hi = conformal_scales(model)
+    return np.array([max(0.0, p50 - Z90 * c_lo * lo), p50, p50 + Z90 * c_hi * hi])
+
+
 def expected(bl: Baseline, merchant_id: str, d: date, h1: int, h2: int) -> dict:
-    """Window = sum of hourly quantiles (over-wide by design; the benchmark measures the coverage)."""
-    s = bl.hourly([merchant_id], d)[merchant_id][h1:h2].sum(axis=0)
+    s = window_quantiles(bl.hourly([merchant_id], d)[merchant_id], h1, h2, bl.name)
     return {"p10": int(round(s[0])), "p50": int(round(s[1])), "p90": int(round(s[2])), "model": bl.name}
 
 

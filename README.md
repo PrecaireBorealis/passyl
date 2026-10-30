@@ -15,3 +15,7 @@ make bench-dev && make bench  # choose the baseline on seed 7, then the held-out
 
 Python env: `uv venv .venv && uv pip install -e backend` (CPU torch: `--index-url https://download.pytorch.org/whl/cpu torch`).
 No LLM or Sarvam key → replies come from templates and voice uses the browser's speech; the trace says which.
+
+Security scope: the API binds to 127.0.0.1 and has no merchant auth (the spec's demo runs on one laptop). In production,
+actions must be bound to the authenticated Paytm merchant (check `actions.merchant_id` on approve/undo/measure), the
+`/api/demo/*` routes disabled, and voice routes rate-limited. The approver in `audit_log` is always set server-side.

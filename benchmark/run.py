@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT / "backend"))
 from app.adapters.synthetic import get_adapter  # noqa: E402
 from app.config import CHRONOS_MODEL  # noqa: E402
 from app.db import conn  # noqa: E402
+from app.engine.baseline import Z90, window_sigmas  # noqa: E402
 from app.engine.why import explain_change, is_flagged  # noqa: E402
 
 from . import metrics  # noqa: E402
@@ -34,6 +35,7 @@ class Timed:
         t0 = time.perf_counter()
         out = self.m.hourly(ids, d)
         self.ms.append((time.perf_counter() - t0) * 1000)
+        self.last = out  # the shop's hourly quantiles, for conformity scores
         return out
 
 
@@ -42,6 +44,9 @@ def make_baseline(name: str):
         from app.engine.baseline_lgbm import LGBMBaseline
         # monthly rolling origins: the model for a window is trained up to the last day of the previous month
         return LGBMBaseline(cutoff_for=lambda d: d.replace(day=1) - timedelta(days=1))
+    if name == "chronos2":
+        from app.engine.baseline_chronos2 import Chronos2Baseline
+        return Chronos2Baseline()
     if name == "chronos_bolt":
         from app.engine.baseline_bolt import BoltBaseline
         return BoltBaseline()
@@ -75,6 +80,8 @@ def main() -> None:
     ap.add_argument("--max-rain", type=int, default=120)
     ap.add_argument("--limit", type=int, default=0, help="debug: only the first N windows")
     ap.add_argument("--app-baseline", default=None, help="the frozen app default (chosen on seed 7)")
+    ap.add_argument("--calibrate", action="store_true",
+                    help="dev seed only: fit split-conformal scales on clean windows → backend/models/conformal.json")
     a = ap.parse_args()
     rng = np.random.default_rng(a.seed)
     adapter = get_adapter()
@@ -87,10 +94,10 @@ def main() -> None:
     out = {"seed": a.seed, "n_shock_windows": int((~W["kind"].isin(["none", "thin"])).sum()),
            "n_clean_windows": int((W["kind"] == "none").sum()), "n_thin_windows": int((W["kind"] == "thin").sum()),
            "app_baseline": a.app_baseline, "baselines": {}, "caveat": CAVEAT}
-    rows_out, cards_out = [], []
+    rows_out, cards_out, calib = [], [], {}
     for name in a.baselines.split(","):
         bl = Timed(make_baseline(name))
-        results, fc = [], []
+        results, fc, scores = [], [], []
         t0 = time.time()
         for i, w in enumerate(W.itertuples()):
             try:
@@ -108,6 +115,12 @@ def main() -> None:
                              "market_pct": (card.get("split") or {}).get("market_pct"), "flagged": r["flagged"],
                              "cause": r["cause"], "confidence": card["confidence"]["state"]})
             if w.kind == "none" and card["expected"]:
+                # conformity score: miss in units of the independent-hours spread on that side
+                qh = getattr(bl, "last", {}).get(w.merchant_id)
+                if qh is not None:
+                    lo, hi = window_sigmas(qh, int(w.start_hour), int(w.end_hour))
+                    y, p50 = card["actual"], card["expected"]["p50"]
+                    scores.append((y - p50) / (lo if y < p50 else hi) / Z90 if (lo if y < p50 else hi) > 0 else 0.0)
                 fc.append({"actual": card["actual"], **{k: card["expected"][k] for k in ("p10", "p50", "p90")},
                            "holiday": w.date in public})
             if i % 50 == 0:
@@ -115,10 +128,20 @@ def main() -> None:
         f = metrics.forecast(fc)
         f["latency_ms_p50"] = int(np.percentile(bl.ms, 50)) if bl.ms else None
         f["latency_ms_p95"] = int(np.percentile(bl.ms, 95)) if bl.ms else None
+        if scores:
+            sc = np.array(scores)
+            n = len(sc)
+            # split-conformal: finite-sample-corrected 10th / 90th percentile of the scores
+            res_cal = {"lo": round(float(-np.quantile(sc, max(0.0, np.floor(0.1 * (n + 1)) / n))), 3),
+                       "hi": round(float(np.quantile(sc, min(1.0, np.ceil(0.9 * (n + 1)) / n))), 3), "n": n}
+            calib[name] = res_cal
         res = {"forecast": f, "engine": metrics.engine(results), "n_windows_scored": len(results),
                "runtime_s": int(time.time() - t0)}
         if name == "chronos_bolt":
             res["model_id"] = CHRONOS_MODEL
+        if name == "chronos2":
+            from app.engine.baseline_chronos2 import CHRONOS2_MODEL
+            res["model_id"] = CHRONOS2_MODEL
         out["baselines"][name] = res
         print(json.dumps({name: {k: v for k, v in res.items() if k != "engine"} | {"engine": {k: v for k, v in res["engine"].items() if k != "by_kind"}}}, indent=1), flush=True)
     if not out["app_baseline"]:
@@ -126,6 +149,13 @@ def main() -> None:
         out["app_baseline"] = min(out["baselines"], key=lambda n: (out["baselines"][n]["forecast"].get("wql", 9),
                                                                    -(out["baselines"][n]["engine"]["cause_accuracy"] or 0),
                                                                    out["baselines"][n]["forecast"].get("latency_ms_p50") or 0))
+    if a.calibrate:
+        if a.seed == 42:
+            raise SystemExit("never calibrate on the test seed")
+        cf = ROOT / "backend" / "models" / "conformal.json"
+        prev = json.loads(cf.read_text()) if cf.exists() else {}
+        cf.write_text(json.dumps({**prev, **calib, "_note": f"split-conformal on clean windows of seed {a.seed}"}, indent=1))
+        print("conformal scales:", calib)
     od = Path(a.out)
     od.mkdir(parents=True, exist_ok=True)
     tag = "" if a.seed == 42 else f"_seed{a.seed}"

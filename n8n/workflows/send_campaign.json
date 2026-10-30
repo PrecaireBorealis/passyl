@@ -1,0 +1,33 @@
+{
+  "name": "VyaparSaathi: send campaign",
+  "nodes": [
+    {
+      "parameters": {"httpMethod": "POST", "path": "vyaparsaathi-campaign", "responseMode": "lastNode", "options": {}},
+      "id": "webhook", "name": "Approved action (from executor)", "type": "n8n-nodes-base.webhook", "typeVersion": 2,
+      "position": [0, 0], "webhookId": "vyaparsaathi-campaign"
+    },
+    {
+      "parameters": {
+        "method": "POST", "url": "http://host.docker.internal:8000/mock-paytm/offers", "sendBody": true,
+        "specifyBody": "json", "jsonBody": "={{ JSON.stringify($json.body.offer) }}", "options": {}
+      },
+      "id": "offer", "name": "Paytm: create offer (mock)", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2,
+      "position": [260, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST", "url": "http://host.docker.internal:8000/mock-paytm/messages", "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({merchant_id: $('Approved action (from executor)').item.json.body.offer.merchant_id, payer_hashes: $('Approved action (from executor)').item.json.body.payer_hashes, template_id: 'combo_lapsed', text: $('Approved action (from executor)').item.json.body.text}) }}",
+        "options": {}
+      },
+      "id": "msg", "name": "Paytm: message opted-in customers (mock)", "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2, "position": [520, 0]
+    }
+  ],
+  "connections": {
+    "Approved action (from executor)": {"main": [[{"node": "Paytm: create offer (mock)", "type": "main", "index": 0}]]},
+    "Paytm: create offer (mock)": {"main": [[{"node": "Paytm: message opted-in customers (mock)", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"}
+}

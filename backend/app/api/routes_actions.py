@@ -7,13 +7,13 @@ router = APIRouter(prefix="/api/actions", tags=["actions"])
 
 
 class ApproveIn(BaseModel):
-    actor: str = "merchant"
+    actor: str = "merchant"  # accepted for contract compatibility; the audit log always records "merchant"
 
 
 @router.post("/{aid}/approve")
 def approve(aid: str, body: ApproveIn | None = None):
     from ..agent import memory
-    live = executor.approve(aid, (body or ApproveIn()).actor)
+    live = executor.approve(aid, "merchant")  # never trust the caller to name the actor
     a = executor.store.get_action(aid)
     s = memory.session(a["merchant_id"])
     s["pending_action_id"], s["live_action_id"] = None, aid

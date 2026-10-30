@@ -4,12 +4,17 @@ from ..agent.orchestrator import handle
 from ..voice import sarvam
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
+MAX_AUDIO_BYTES = 5 * 1024 * 1024   # ~1 minute of push-to-talk; bounds paid STT calls
+MAX_TTS_CHARS = 600                 # a 60-word reply; bounds paid TTS calls
 
 
 @router.post("/turn")
 async def turn(audio: UploadFile = File(...), merchant_id: str = Form(...)):
     import time
-    raw = await audio.read()
+    raw = await audio.read(MAX_AUDIO_BYTES + 1)
+    if len(raw) > MAX_AUDIO_BYTES:
+        return {"transcript": "", "stt_lang": None, "fallback": True, "error": "audio too long", "response": None,
+                "audio_b64": None}
     t0 = time.perf_counter()
     stt = sarvam.stt(raw, audio.content_type or "audio/webm")
     stt_ms = int((time.perf_counter() - t0) * 1000)
@@ -30,4 +35,4 @@ async def turn(audio: UploadFile = File(...), merchant_id: str = Form(...)):
 @router.post("/tts")
 def tts_only(body: dict):
     """Speak an already-written reply (used when the text arrived via the browser-speech fallback)."""
-    return sarvam.tts(body.get("text", ""), body.get("lang", "hi-en"))
+    return sarvam.tts(str(body.get("text", ""))[:MAX_TTS_CHARS], body.get("lang", "hi-en"))
