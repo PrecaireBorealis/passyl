@@ -1,0 +1,18 @@
+{
+ "lgbm": {
+  "lo": 0.977,
+  "hi": 1.15,
+  "n": 300
+ },
+ "_note": "split-conformal on clean windows of seed 7",
+ "chronos_bolt": {
+  "lo": 1.0,
+  "hi": 1.53,
+  "n": 300
+ },
+ "chronos2": {
+  "lo": 0.833,
+  "hi": 1.241,
+  "n": 300
+ }
+}
