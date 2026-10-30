@@ -46,6 +46,7 @@ export const api = {
   benchmark: () => call<Benchmark>("/api/benchmark/latest", undefined, "benchmark"),
 };
 
-export const rupee = (n: number | null | undefined) => (n == null ? "–" : `₹${Math.round(n).toLocaleString("en-IN")}`);
+export const rupee = (n: number | null | undefined) =>
+  n == null ? "–" : `${n < 0 ? "−" : ""}₹${Math.abs(Math.round(n)).toLocaleString("en-IN")}`;
 export const pct = (n: number | null | undefined, sign = true) => (n == null ? "–" : `${sign && n > 0 ? "+" : ""}${n.toFixed(1)}%`);
 export const hour12 = (h: number) => `${h % 12 || 12}${h < 12 ? " am" : " pm"}`;

@@ -1,5 +1,4 @@
 """Assembles the Why card (spec 8.6), plus the summary and hourly views that share its baseline."""
-import os
 import time
 from datetime import date, timedelta
 
@@ -14,7 +13,6 @@ MIN_BILLS = 20           # fewer expected bills in the window → a % change is 
 MATCH_PTS = 3.0          # market part within the factor range ± 3 points → "explains_market"
 DROP_PCT = -8.0
 EVENING = (18, 22)
-USE_SC = os.environ.get("ENGINE_SC", "1") == "1"   # Peer-Shock v2 (synthetic control); 0 = peer median only
 LABELS = {"rain": "Baarish", "festival": "Tyohaar", "disruption": "Bandh / strike"}
 
 
@@ -74,19 +72,6 @@ def explain_change(adapter, merchant_id: str, d: date, start_hour: int | None = 
     trace("peer_shock", int((time.perf_counter() - t0) * 1000) + 1,
           f"{sp['n']} peers within {radius} km, median {sp['median_change_pct']:+.1f}%" if sp["state"] == "ok"
           else f"only {sp['n']} peers within 5 km")
-    if USE_SC and shop_change is not None and sp["state"] == "ok":
-        t0 = time.perf_counter()
-        sc = peer_shock.synthetic_control(adapter, merchant_id, peers, d, h1, h2)
-        if sc and sc["r2"] >= peer_shock.SC_MIN_R2:
-            # shop part = actual vs its synthetic twin; market = the rest of the change vs the baseline
-            sp["shop_pct"] = round(100 * sc["shop_part"], 1)
-            sp["market_pct"] = round(100 * shop_change - sp["shop_pct"], 1)
-            trace("synthetic_control", int((time.perf_counter() - t0) * 1000) + 1,
-                  f"twin from {len(peers)} peers (fit R² {sc['r2']:.2f}, {sc['n_days']} days): expected ₹{sc['cf']:,.0f}, "
-                  f"shop part {sp['shop_pct']:+.1f}%")
-        else:
-            trace("synthetic_control", int((time.perf_counter() - t0) * 1000) + 1,
-                  "twin doesn't track this shop well; using the peer median")
 
     t0 = time.perf_counter()
     fl = context.flags(adapter, m, d, h1, h2)

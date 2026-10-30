@@ -28,7 +28,14 @@ DEMO_NOW = env("DEMO_NOW", "2026-10-30T20:05:00+05:30")
 DEMO_MERCHANT_ID = env("DEMO_MERCHANT_ID", "M_KOR_RES_001")
 BASELINE_MODEL = env("BASELINE_MODEL", "lgbm")
 CHRONOS_MODEL = env("CHRONOS_MODEL", "amazon/chronos-bolt-small")
-CHRONOS_DEVICE = env("CHRONOS_DEVICE", "cpu")
+CHRONOS_DEVICE = env("CHRONOS_DEVICE", "auto")  # auto = cuda if available, else cpu
+
+
+def chronos_device() -> str:
+    if CHRONOS_DEVICE != "auto":
+        return CHRONOS_DEVICE
+    import torch
+    return "cuda" if torch.cuda.is_available() else "cpu"
 OFFLINE_MODE = env("OFFLINE_MODE", "0") == "1"
 DATA_SEED = env("DATA_SEED", "42")
 MODELS_DIR = ROOT / "backend" / "models" / f"seed_{DATA_SEED}"  # trained models belong to one dataset

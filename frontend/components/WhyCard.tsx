@@ -26,9 +26,12 @@ export default function WhyCard({ card }: { card: W }) {
           )}
         </div>
       ) : (
-        <div className="flex items-end gap-2">
-          <div className={`text-2xl font-bold ${(card.shop_change_pct ?? 0) < 0 ? "text-drop" : "text-ok"}`}>{pct(card.shop_change_pct)}</div>
-          <div className="text-xs text-gray-500 pb-1">{rupee(card.actual)} vs normal {rupee(card.expected?.p50)}</div>
+        <div>
+          <div className="flex items-end gap-2">
+            <div className={`text-2xl font-bold ${(card.shop_change_pct ?? 0) < 0 ? "text-drop" : "text-ok"}`}>{pct(card.shop_change_pct)}</div>
+            <div className="text-xs text-gray-500 pb-1">{rupee(card.actual)} vs normal {rupee(card.expected?.p50)}</div>
+          </div>
+          {card.expected && <RangeGauge e={card.expected} actual={card.actual} />}
         </div>
       )}
       {card.split && <SplitBar market={card.split.market_pct} shop={card.split.shop_pct} />}
@@ -64,6 +67,27 @@ export default function WhyCard({ card }: { card: W }) {
       )}
       {card.confidence.state === "wide" && <div className="text-[11px] text-amber-700">{card.confidence.note}</div>}
       {card.confidence.state === "no_peers" && <div className="text-[11px] text-amber-700">{card.confidence.note}</div>}
+    </div>
+  );
+}
+
+/** Calibrated 80% range of a normal window (conformal), with today's actual marked. */
+function RangeGauge({ e, actual }: { e: { p10: number; p50: number; p90: number }; actual: number }) {
+  const lo = Math.min(e.p10, actual) * 0.9, hi = Math.max(e.p90, actual) * 1.05;
+  const x = (v: number) => `${(100 * (v - lo)) / (hi - lo || 1)}%`;
+  const outside = actual < e.p10 || actual > e.p90;
+  return (
+    <div className="mt-2">
+      <div className="relative h-3">
+        <div className="absolute top-1 h-1 w-full bg-gray-100 rounded" />
+        <div className="absolute top-0.5 h-2 bg-gray-300 rounded" style={{ left: x(e.p10), width: `calc(${x(e.p90)} - ${x(e.p10)})` }} />
+        <div className="absolute top-0 h-3 w-0.5 bg-gray-600" style={{ left: x(e.p50) }} />
+        <div className={`absolute -top-0.5 h-4 w-1.5 rounded ${outside ? "bg-drop" : "bg-act"}`} style={{ left: x(actual) }} />
+      </div>
+      <div className="text-[10px] text-gray-500 mt-0.5">
+        Normal ka 80% range {rupee(e.p10)}–{rupee(e.p90)} (calibrated) ·{" "}
+        {outside ? "aaj range ke bahar: asli badlav" : "aaj range ke andar: akele 2–4 ghante mein utaar-chadhaav aam hai, isliye aas-paas ki dukaanon se milate hain"}
+      </div>
     </div>
   );
 }

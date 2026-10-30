@@ -62,7 +62,27 @@ def uplift(adapter, merchant: dict, kind: str) -> dict:
     pt = wo * float(own["treat_rate"].mean()) + (1 - wo) * lt if len(own) else lt
     pcr = wo * float(own["hold_rate"].mean()) + (1 - wo) * lc if len(own) else lc
     source = "your past campaigns" if len(own) >= 5 else "similar shops" if len(local) >= 5 else "all shops"
-    return {"p_t": round(pt, 3), "p_c": round(pcr, 3), "source": source, "n_campaigns": int(len(own) + len(local))}
+    ref = own if len(own) >= 5 else local if len(local) >= 5 else pc
+    # how much the rates vary from shop to shop: the uncertainty for *this* shop
+    sd_t, sd_c = float(ref["treat_rate"].std(ddof=1)), float(ref["hold_rate"].std(ddof=1))
+    return {"p_t": round(pt, 3), "p_c": round(pcr, 3), "source": source, "n_campaigns": int(len(own) + len(local)),
+            "sd_t": round(sd_t, 3), "sd_c": round(sd_c, 3)}
+
+
+MC_DRAWS = 4000
+
+
+def profit_risk(n_treat: int, u: dict, ticket: float, margin: float, discount: float, seed: int = 0) -> dict:
+    """Monte Carlo of realised profit: return rates drawn from the across-shop spread, then binomial luck in a
+    segment of n_treat customers. Returns P(profit > 0) and the 80% range."""
+    rng = np.random.default_rng(seed)
+    pt = np.clip(rng.normal(u["p_t"], u.get("sd_t", 0.05), MC_DRAWS), 0, 1)
+    pc = np.clip(rng.normal(u["p_c"], u.get("sd_c", 0.03), MC_DRAWS), 0, 1)
+    came = rng.binomial(n_treat, pt)                 # offered customers who return (all redeem)
+    would = rng.binomial(n_treat, pc)                # of them, how many would have come anyway
+    profit = (came - would) * (ticket * margin - discount) - would * discount
+    lo, hi = np.percentile(profit, [10, 90])
+    return {"p_profit_positive": round(float((profit > 0).mean()), 2), "profit_p10": int(lo), "profit_p90": int(hi)}
 
 
 def gross_margin(merchant: dict, product: dict | None) -> float:
@@ -106,7 +126,7 @@ def rank(adapter, merchant_id: str, d: date, why: dict | None = None, window: tu
             "expected_profit": int(round(profit)), "expected_cost": int(round(cost)), "n_target": int(len(opted)),
             "assumptions": {"p_t": u["p_t"], "p_c": u["p_c"], "source": u["source"], "ticket": T,
                             "gross_margin": round(g, 3), "discount": c, "n_treat": n_treat,
-                            "n_holdout": int(len(opted) - n_treat)},
+                            "n_holdout": int(len(opted) - n_treat), **profit_risk(n_treat, u, T, g, c)},
             "params": {"product_id": product["id"], "discount": c, "price": T, "mrp": product["mrp"],
                        "cost": product["cost"], "offer_price": T - c, "start_hour": window[0], "end_hour": window[1],
                        "segment": "lapsed_opted_in", "n_target": int(len(opted))},
@@ -147,7 +167,8 @@ def rank(adapter, merchant_id: str, d: date, why: dict | None = None, window: tu
             "description_hi": f"{len(opted)} purane customers ko ek message, bina discount ke.",
             "expected_profit": int(round(n_treat * (u["p_t"] - u["p_c"]) * T * g)), "expected_cost": 0,
             "n_target": int(len(opted)),
-            "assumptions": {"p_t": u["p_t"], "p_c": u["p_c"], "source": u["source"], "n_treat": n_treat},
+            "assumptions": {"p_t": u["p_t"], "p_c": u["p_c"], "source": u["source"], "n_treat": n_treat,
+                            **profit_risk(n_treat, u, T, g, 0)},
             "params": {"start_hour": window[0], "end_hour": window[1], "segment": "lapsed_opted_in", "n_target": int(len(opted))},
             "relevant": True,
         })

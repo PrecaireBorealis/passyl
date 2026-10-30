@@ -9,7 +9,7 @@ const ROWS: [string, "forecast" | "engine", string, boolean][] = [
   ["Split error (pts)", "engine", "split_mae_pts", false], ["Range coverage", "engine", "range_coverage", true],
   ["False alarms", "engine", "false_alarm_rate", true], ["\"Don't know\" when thin", "engine", "idk_rate", true],
   ["WAPE (clean)", "forecast", "wape_p50", true], ["Quantile loss", "forecast", "wql", false],
-  ["p10–p90 coverage", "forecast", "coverage_p10_p90", true], ["Holiday WAPE", "forecast", "holiday_wape", true],
+  ["80% range coverage (target 80%)", "forecast", "coverage_p10_p90", true], ["Holiday WAPE", "forecast", "holiday_wape", true],
 ];
 
 export default function BenchmarkPage() {
@@ -27,7 +27,7 @@ export default function BenchmarkPage() {
       </div>
       <table className="w-full text-[11px]">
         <thead><tr className="border-b"><th className="text-left py-1">Metric</th>
-          {names.map((n) => <th key={n} className={`text-right ${n === b.app_baseline ? "text-act" : ""}`}>{n === "chronos_bolt" ? "Chronos-Bolt" : "LightGBM"}{n === b.app_baseline ? " ★" : ""}</th>)}</tr></thead>
+          {names.map((n) => <th key={n} className={`text-right ${n === b.app_baseline ? "text-act" : ""}`}>{({ chronos_bolt: "Bolt", chronos2: "Chronos-2", lgbm: "LightGBM" } as Record<string, string>)[n] ?? n}{n === b.app_baseline ? " ★" : ""}</th>)}</tr></thead>
         <tbody>
           {ROWS.map(([label, sec, key, p]) => (
             <tr key={key} className="border-b border-gray-100"><td className="py-1">{label}</td>

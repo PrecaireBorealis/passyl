@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from ..adapters.synthetic import get_adapter
-from ..config import CHRONOS_DEVICE, CHRONOS_MODEL
+from ..config import CHRONOS_MODEL, chronos_device
 from .baseline import closed_hours, tidy
 
 CONTEXT = 2048
@@ -17,7 +17,7 @@ def pipeline():
     if _PIPE is None:
         import torch
         from chronos import BaseChronosPipeline
-        _PIPE = BaseChronosPipeline.from_pretrained(CHRONOS_MODEL, device_map=CHRONOS_DEVICE, torch_dtype=torch.float32)
+        _PIPE = BaseChronosPipeline.from_pretrained(CHRONOS_MODEL, device_map=chronos_device(), dtype=torch.float32)
     return _PIPE
 
 

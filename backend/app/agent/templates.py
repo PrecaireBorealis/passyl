@@ -70,12 +70,16 @@ def recommend(strat: dict, lang: str) -> str:
             "Abhi koi offer guardrails pass nahi karta. Kuch naya nahi karte."
     flat = next((o for o in strat["options"] if o["id"] == "flat_discount"), None)
     if lang == "en":
-        s = f"Suggestion: {rec['title_hi']}, to {rec['n_target']} customers. Expected extra profit ₹{rec['expected_profit']}."
+        s = f"Suggestion: {rec['title_hi']}, to {rec['n_target']} customers. Expected extra profit ₹{rec['expected_profit']}"
+        pp = rec["assumptions"].get("p_profit_positive")
+        s += f" ({round(100 * pp)}% chance it makes money)." if pp is not None else "."
         if flat:
             fp = flat["expected_profit"]
             s += f" A flat 20% off would {'earn' if fp >= 0 else 'lose'} ₹{abs(fp)}."
         return s + " All guardrails pass. Start it?"
-    s = f"Meri salah: {rec['title_hi']}, {rec['n_target']} customers ko. Andaazan ₹{rec['expected_profit']} extra munafa."
+    s = f"Meri salah: {rec['title_hi']}, {rec['n_target']} customers ko. Andaazan ₹{rec['expected_profit']} extra munafa"
+    pp = rec["assumptions"].get("p_profit_positive")
+    s += f" ({round(100 * pp)}% chance ki munafa hoga)." if pp is not None else "."
     if flat:
         fp = flat["expected_profit"]
         s += f" Sab par 20% off se sirf ₹{fp} banega." if fp >= 0 else f" Sab par 20% off se ulta ₹{abs(fp)} ka nuksaan."

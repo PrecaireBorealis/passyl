@@ -20,6 +20,12 @@ export default function StrategyCard({ data, onSay }: { data: Strategies; onSay?
               <div><div className="text-gray-500">Kharcha</div><div className="font-semibold">{rupee(o.expected_cost)}</div></div>
               <div><div className="text-gray-500">Customers</div><div className="font-semibold">{o.n_target}</div></div>
             </div>
+            {"p_profit_positive" in o.assumptions && (
+              <div className="text-[11px] mt-1">
+                <b>{Math.round(100 * Number(o.assumptions.p_profit_positive))}%</b> chance munafa hoga · zyada tar{" "}
+                {rupee(Number(o.assumptions.profit_p10))} se {rupee(Number(o.assumptions.profit_p90))}
+              </div>
+            )}
             {"p_t" in o.assumptions && (
               <div className="text-[10px] text-gray-400 mt-1">
                 Wapas aane ka andaaza: offer se {Math.round(100 * Number(o.assumptions.p_t))}%, bina offer {Math.round(100 * Number(o.assumptions.p_c))}% ({String(o.assumptions.source)})
