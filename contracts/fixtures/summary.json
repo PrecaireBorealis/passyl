@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-30",
+  "revenue_today": 28720,
+  "revenue_normal": 29278,
+  "change_pct": -1.9,
+  "bills": 83,
+  "bills_change_pct": -4.6,
+  "regular_share": 0.253,
+  "regular_share_usual": 0.302,
+  "alert": {
+    "window": {
+      "start_hour": 18,
+      "end_hour": 20
+    },
+    "change_pct": -19.4
+  },
+  "data_label": "synthetic"
+}

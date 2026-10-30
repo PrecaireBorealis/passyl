@@ -1,0 +1,15 @@
+[project]
+name = "vyaparsaathi-backend"
+version = "1.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi", "uvicorn[standard]", "python-multipart", "psycopg[binary]", "pandas", "numpy", "pyarrow",
+  "lightgbm", "scipy", "holidays>=0.107", "pyyaml", "httpx", "chronos-forecasting==2.3.2", "torch",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]

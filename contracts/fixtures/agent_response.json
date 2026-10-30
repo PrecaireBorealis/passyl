@@ -1,0 +1,142 @@
+{
+  "reply_text": "6 se 8 baje ki sales normal se 19.4% kam hain. Aas-paas ki 13 similar dukaanein bhi lagbhag 11.4% badli, baarish ki wajah se. Wo hissa aapki galti nahi. Baaki 8.0% aapki dukaan ka hai: aapke regular customers kam aaye (5, aam taur par 7). Andaaza kam pakka hai.",
+  "lang": "hi-en",
+  "intent": "WHY",
+  "cards": [
+    {
+      "type": "why_card",
+      "data": {
+        "merchant_id": "M_KOR_RES_001",
+        "date": "2026-10-30",
+        "window": {
+          "start_hour": 18,
+          "end_hour": 20
+        },
+        "actual": 7270,
+        "expected": {
+          "p10": 4647,
+          "p50": 9025,
+          "p90": 13070
+        },
+        "baseline_model": "lgbm",
+        "shop_change_pct": -19.4,
+        "peer": {
+          "n": 13,
+          "radius_km": 2,
+          "median_change_pct": -11.4,
+          "iqr_pct": [
+            -15.9,
+            -3.9
+          ]
+        },
+        "split": {
+          "market_pct": -11.4,
+          "shop_pct": -8.0
+        },
+        "factors": [
+          {
+            "id": "rain",
+            "label_hi": "Baarish (5 baje se)",
+            "evidence": "Peers within 2 km -11.4% same hours",
+            "status": "explains_market",
+            "effect_range_pct": [
+              -29.6,
+              21.4
+            ],
+            "basis": {
+              "shop_n": 11,
+              "peer_n": 11
+            }
+          },
+          {
+            "id": "festival",
+            "label_hi": "Tyohaar",
+            "evidence": "Aaj koi tyohaar nahi",
+            "status": "none"
+          },
+          {
+            "id": "disruption",
+            "label_hi": "Bandh / strike",
+            "evidence": "Koi khabar nahi",
+            "status": "none"
+          }
+        ],
+        "shop_drivers": [
+          {
+            "id": "regulars_missing",
+            "usual": 7,
+            "actual": 5,
+            "contribution_pts": -3.2
+          },
+          {
+            "id": "ticket_size",
+            "usual": 314,
+            "actual": 316,
+            "contribution_pts": 0.6
+          },
+          {
+            "id": "other_customers",
+            "usual": 19,
+            "actual": 18,
+            "contribution_pts": 2.5
+          }
+        ],
+        "confidence": {
+          "state": "wide",
+          "note": "Andaaza kam pakka hai: range chauda hai."
+        },
+        "data_label": "synthetic"
+      }
+    }
+  ],
+  "pending_action": null,
+  "trace": [
+    {
+      "tool": "classify",
+      "ms": 0,
+      "summary": "WHY via keywords"
+    },
+    {
+      "tool": "get_summary",
+      "ms": 17,
+      "summary": "₹28,720 vs normal ₹29,278"
+    },
+    {
+      "tool": "baseline",
+      "ms": 8,
+      "summary": "lgbm: expected ₹9,025 for 18–20"
+    },
+    {
+      "tool": "peer_shock",
+      "ms": 1,
+      "summary": "13 peers within 2 km, median -11.4%"
+    },
+    {
+      "tool": "weather",
+      "ms": 14,
+      "summary": "rain 17:00–20:00, up to 6.0 mm/h"
+    },
+    {
+      "tool": "calendar",
+      "ms": 1,
+      "summary": "no festival"
+    },
+    {
+      "tool": "pooling",
+      "ms": 366,
+      "summary": "rain -29.6% to 21.4%"
+    },
+    {
+      "tool": "drivers",
+      "ms": 11,
+      "summary": "regulars_missing: 5 vs usual 7"
+    },
+    {
+      "tool": "llm_write",
+      "ms": 4,
+      "summary": "template reply (no LLM configured); numbers from tools"
+    }
+  ],
+  "audio_b64": null,
+  "data_label": "synthetic"
+}

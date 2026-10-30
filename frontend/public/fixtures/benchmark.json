@@ -1,0 +1,119 @@
+{
+  "seed": 42,
+  "n_shock_windows": 247,
+  "n_clean_windows": 300,
+  "n_thin_windows": 7,
+  "app_baseline": "lgbm",
+  "baselines": {
+    "lgbm": {
+      "forecast": {
+        "wape_p50": 0.2736,
+        "wql": 0.1967,
+        "coverage_p10_p90": 0.99,
+        "holiday_wape": 0.464,
+        "n_holiday_windows": 17,
+        "latency_ms_p50": 66,
+        "latency_ms_p95": 5795
+      },
+      "engine": {
+        "detection_rate": 0.8219,
+        "cause_accuracy": 0.4039,
+        "split_mae_pts": 22.92,
+        "range_coverage": 0.9388,
+        "n_ranges": 196,
+        "false_alarm_rate": 0.23,
+        "idk_rate": 1.0,
+        "by_kind": {
+          "bandh": {
+            "n": 14,
+            "detection_rate": 1.0,
+            "cause_accuracy": 0.929
+          },
+          "competitor_open": {
+            "n": 10,
+            "detection_rate": 0.7,
+            "cause_accuracy": 0.286
+          },
+          "festival": {
+            "n": 80,
+            "detection_rate": 1.0,
+            "cause_accuracy": 0.637
+          },
+          "lapsed_regulars": {
+            "n": 15,
+            "detection_rate": 0.8,
+            "cause_accuracy": 0.083
+          },
+          "payment_outage": {
+            "n": 8,
+            "detection_rate": 1.0,
+            "cause_accuracy": 0.25
+          },
+          "rain": {
+            "n": 120,
+            "detection_rate": 0.683,
+            "cause_accuracy": 0.159
+          }
+        }
+      },
+      "n_windows_scored": 554,
+      "runtime_s": 542
+    },
+    "chronos_bolt": {
+      "forecast": {
+        "wape_p50": 0.2913,
+        "wql": 0.1949,
+        "coverage_p10_p90": 0.9533,
+        "holiday_wape": 0.4494,
+        "n_holiday_windows": 17,
+        "latency_ms_p50": 395,
+        "latency_ms_p95": 610
+      },
+      "engine": {
+        "detection_rate": 0.8583,
+        "cause_accuracy": 0.4104,
+        "split_mae_pts": 17.56,
+        "range_coverage": 0.9388,
+        "n_ranges": 196,
+        "false_alarm_rate": 0.25,
+        "idk_rate": 1.0,
+        "by_kind": {
+          "bandh": {
+            "n": 14,
+            "detection_rate": 1.0,
+            "cause_accuracy": 0.929
+          },
+          "competitor_open": {
+            "n": 10,
+            "detection_rate": 1.0,
+            "cause_accuracy": 0.2
+          },
+          "festival": {
+            "n": 80,
+            "detection_rate": 0.95,
+            "cause_accuracy": 0.684
+          },
+          "lapsed_regulars": {
+            "n": 15,
+            "detection_rate": 0.6,
+            "cause_accuracy": 0.111
+          },
+          "payment_outage": {
+            "n": 8,
+            "detection_rate": 1.0,
+            "cause_accuracy": 0.375
+          },
+          "rain": {
+            "n": 120,
+            "detection_rate": 0.792,
+            "cause_accuracy": 0.168
+          }
+        }
+      },
+      "n_windows_scored": 554,
+      "runtime_s": 315,
+      "model_id": "amazon/chronos-bolt-small"
+    }
+  },
+  "caveat": "Synthetic data with planted causes. Tests the engine's logic, not real-world accuracy."
+}

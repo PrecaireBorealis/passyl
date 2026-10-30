@@ -1,0 +1,48 @@
+{
+  "id": "A_29cc6dc979",
+  "status": "live",
+  "n_treat": 51,
+  "n_holdout": 50,
+  "budget_cap": 2000,
+  "ends_at": "2026-10-30T22:00:00+05:30",
+  "policy": {
+    "checks": [
+      {
+        "id": "mrp_cap",
+        "passed": true,
+        "detail_hi": "Offer price ₹549, MRP ₹699 se upar nahi"
+      },
+      {
+        "id": "price_band",
+        "passed": true,
+        "detail_hi": "Daam -15% (band ±10%, sirf badhane par)"
+      },
+      {
+        "id": "margin_floor",
+        "passed": true,
+        "detail_hi": "Margin 47% (kam se kam 20%)"
+      },
+      {
+        "id": "budget",
+        "passed": true,
+        "detail_hi": "Andaazan kharcha ₹1795, budget ₹2000"
+      },
+      {
+        "id": "consent",
+        "passed": true,
+        "detail_hi": "Sirf opt-in customers ko message"
+      },
+      {
+        "id": "quiet_hours",
+        "passed": true,
+        "detail_hi": "Message 20:00 par, 22:00 ke baad nahi"
+      },
+      {
+        "id": "autonomy",
+        "passed": true,
+        "detail_hi": "L2: aapke 'haan' ke baad hi chalega"
+      }
+    ],
+    "passed": true
+  }
+}

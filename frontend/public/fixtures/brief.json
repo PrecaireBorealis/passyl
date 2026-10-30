@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-31",
+  "yesterday": {
+    "date": "2026-10-30",
+    "revenue_today": 41450,
+    "revenue_normal": 43883,
+    "change_pct": -5.5,
+    "bills": 122,
+    "bills_change_pct": -3.2,
+    "regular_share": 0.262,
+    "regular_share_usual": 0.31,
+    "alert": {
+      "window": {
+        "start_hour": 18,
+        "end_hour": 22
+      },
+      "change_pct": -16.6
+    },
+    "data_label": "synthetic"
+  },
+  "last_action_result": {
+    "n_treat": 51,
+    "returned_treat": 24,
+    "rate_treat": 0.471,
+    "rate_treat_ci": [
+      0.383,
+      0.56
+    ],
+    "n_holdout": 50,
+    "returned_holdout": 8,
+    "rate_holdout": 0.16,
+    "rate_holdout_ci": [
+      0.105,
+      0.237
+    ],
+    "incremental_bills": 15.8,
+    "incremental_profit": 3687,
+    "offer_cost": 2000,
+    "redemptions": 20,
+    "note_hi": "Offer wale customers saaf taur par zyada laute.",
+    "action_id": "A_29cc6dc979",
+    "kind": "combo_lapsed",
+    "title_hi": "Family combo offer: purane regular customers ke liye"
+  },
+  "today": {
+    "weather_note_hi": null,
+    "festival_note_hi": null
+  },
+  "suggestion": {
+    "id": "winback_message",
+    "kind": "winback_message",
+    "title_hi": "Sirf yaad dilane wala message",
+    "description_hi": "98 purane customers ko ek message, bina discount ke.",
+    "expected_profit": 1196,
+    "expected_cost": 0,
+    "n_target": 98,
+    "assumptions": {
+      "p_t": 0.207,
+      "p_c": 0.139,
+      "source": "similar shops",
+      "n_treat": 49
+    },
+    "params": {
+      "start_hour": 19,
+      "end_hour": 22,
+      "segment": "lapsed_opted_in",
+      "n_target": 98
+    },
+    "relevant": true,
+    "policy": {
+      "passed": true,
+      "checks": [
+        {
+          "id": "budget",
+          "passed": true,
+          "detail_hi": "Andaazan kharcha ₹0, budget ₹2000"
+        },
+        {
+          "id": "consent",
+          "passed": true,
+          "detail_hi": "Sirf opt-in customers ko message"
+        },
+        {
+          "id": "quiet_hours",
+          "passed": true,
+          "detail_hi": "Message 19:00 par, 22:00 ke baad nahi"
+        },
+        {
+          "id": "autonomy",
+          "passed": true,
+          "detail_hi": "L2: aapke 'haan' ke baad hi chalega"
+        }
+      ]
+    }
+  },
+  "data_label": "synthetic"
+}

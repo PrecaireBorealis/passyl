@@ -1,0 +1,169 @@
+{
+  "options": [
+    {
+      "id": "combo_lapsed",
+      "kind": "combo_lapsed",
+      "title_hi": "Family combo offer: purane regular customers ke liye",
+      "description_hi": "8 se 10 baje tak Family combo par ₹100 off, sirf un 101 customers ko jo pehle aate the aur 3 hafte se nahi aaye (opt-in).",
+      "expected_profit": 1992,
+      "expected_cost": 1795,
+      "n_target": 101,
+      "assumptions": {
+        "p_t": 0.359,
+        "p_c": 0.148,
+        "source": "similar shops",
+        "ticket": 649,
+        "gross_margin": 0.553,
+        "discount": 100,
+        "n_treat": 50,
+        "n_holdout": 51
+      },
+      "params": {
+        "product_id": "P_RAJU_COMBO",
+        "discount": 100,
+        "price": 649,
+        "mrp": 699,
+        "cost": 290,
+        "offer_price": 549,
+        "start_hour": 20,
+        "end_hour": 22,
+        "segment": "lapsed_opted_in",
+        "n_target": 101
+      },
+      "relevant": true,
+      "policy": {
+        "passed": true,
+        "checks": [
+          {
+            "id": "mrp_cap",
+            "passed": true,
+            "detail_hi": "Offer price ₹549, MRP ₹699 se upar nahi"
+          },
+          {
+            "id": "price_band",
+            "passed": true,
+            "detail_hi": "Daam -15% (band ±10%, sirf badhane par)"
+          },
+          {
+            "id": "margin_floor",
+            "passed": true,
+            "detail_hi": "Margin 47% (kam se kam 20%)"
+          },
+          {
+            "id": "budget",
+            "passed": true,
+            "detail_hi": "Andaazan kharcha ₹1795, budget ₹2000"
+          },
+          {
+            "id": "consent",
+            "passed": true,
+            "detail_hi": "Sirf opt-in customers ko message"
+          },
+          {
+            "id": "quiet_hours",
+            "passed": true,
+            "detail_hi": "Message 20:00 par, 22:00 ke baad nahi"
+          },
+          {
+            "id": "autonomy",
+            "passed": true,
+            "detail_hi": "L2: aapke 'haan' ke baad hi chalega"
+          }
+        ]
+      }
+    },
+    {
+      "id": "winback_message",
+      "kind": "winback_message",
+      "title_hi": "Sirf yaad dilane wala message",
+      "description_hi": "101 purane customers ko ek message, bina discount ke.",
+      "expected_profit": 1221,
+      "expected_cost": 0,
+      "n_target": 101,
+      "assumptions": {
+        "p_t": 0.207,
+        "p_c": 0.139,
+        "source": "similar shops",
+        "n_treat": 50
+      },
+      "params": {
+        "start_hour": 20,
+        "end_hour": 22,
+        "segment": "lapsed_opted_in",
+        "n_target": 101
+      },
+      "relevant": true,
+      "policy": {
+        "passed": true,
+        "checks": [
+          {
+            "id": "budget",
+            "passed": true,
+            "detail_hi": "Andaazan kharcha ₹0, budget ₹2000"
+          },
+          {
+            "id": "consent",
+            "passed": true,
+            "detail_hi": "Sirf opt-in customers ko message"
+          },
+          {
+            "id": "quiet_hours",
+            "passed": true,
+            "detail_hi": "Message 20:00 par, 22:00 ke baad nahi"
+          },
+          {
+            "id": "autonomy",
+            "passed": true,
+            "detail_hi": "L2: aapke 'haan' ke baad hi chalega"
+          }
+        ]
+      }
+    },
+    {
+      "id": "flat_discount",
+      "kind": "flat_discount",
+      "title_hi": "Sab bills par 20% off",
+      "description_hi": "8 se 10 baje tak har bill par 20% chhoot, sabke liye.",
+      "expected_profit": -1898,
+      "expected_cost": 2690,
+      "n_target": 37,
+      "assumptions": {
+        "discount_pct": 20,
+        "expected_bills": 36.5,
+        "uplift": 0.12,
+        "ticket": 329,
+        "gross_margin": 0.55,
+        "source": "default"
+      },
+      "params": {
+        "discount_pct": 20,
+        "start_hour": 20,
+        "end_hour": 22,
+        "segment": "everyone"
+      },
+      "relevant": true,
+      "policy": {
+        "passed": false,
+        "checks": [
+          {
+            "id": "budget",
+            "passed": false,
+            "detail_hi": "Andaazan kharcha ₹2690, budget ₹2000"
+          },
+          {
+            "id": "quiet_hours",
+            "passed": true,
+            "detail_hi": "Message 20:00 par, 22:00 ke baad nahi"
+          },
+          {
+            "id": "autonomy",
+            "passed": true,
+            "detail_hi": "L2: aapke 'haan' ke baad hi chalega"
+          }
+        ]
+      }
+    }
+  ],
+  "recommended_id": "combo_lapsed",
+  "draft_action_id": "A_29cc6dc979"
+}

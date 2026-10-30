@@ -1,0 +1,56 @@
+{
+  "merchant_id": "M_KOR_CAF_NEW",
+  "date": "2026-10-30",
+  "window": {
+    "start_hour": 18,
+    "end_hour": 20
+  },
+  "actual": 2700,
+  "expected": null,
+  "baseline_model": "lgbm",
+  "shop_change_pct": null,
+  "peer": {
+    "n": 10,
+    "radius_km": 2,
+    "median_change_pct": -20.1,
+    "iqr_pct": [
+      -24.7,
+      -11.8
+    ]
+  },
+  "split": null,
+  "factors": [
+    {
+      "id": "rain",
+      "label_hi": "Baarish (5 baje se)",
+      "evidence": "Peers within 2 km -20.1% same hours",
+      "status": "explains_market",
+      "effect_range_pct": [
+        -17.9,
+        2.8
+      ],
+      "basis": {
+        "shop_n": 0,
+        "peer_n": 11
+      }
+    },
+    {
+      "id": "festival",
+      "label_hi": "Tyohaar",
+      "evidence": "Aaj koi tyohaar nahi",
+      "status": "none"
+    },
+    {
+      "id": "disruption",
+      "label_hi": "Bandh / strike",
+      "evidence": "Koi khabar nahi",
+      "status": "none"
+    }
+  ],
+  "shop_drivers": [],
+  "confidence": {
+    "state": "thin_history",
+    "note": "Sirf 21 din ka data hai; abhi apna normal nahi bana. Aas-paas ki similar dukaanon ka range dikha rahe hain."
+  },
+  "data_label": "synthetic"
+}

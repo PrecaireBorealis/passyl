@@ -1,0 +1,21 @@
+{
+  "n_treat": 51,
+  "returned_treat": 24,
+  "rate_treat": 0.471,
+  "rate_treat_ci": [
+    0.383,
+    0.56
+  ],
+  "n_holdout": 50,
+  "returned_holdout": 8,
+  "rate_holdout": 0.16,
+  "rate_holdout_ci": [
+    0.105,
+    0.237
+  ],
+  "incremental_bills": 15.8,
+  "incremental_profit": 3687,
+  "offer_cost": 2000,
+  "redemptions": 20,
+  "note_hi": "Offer wale customers saaf taur par zyada laute."
+}

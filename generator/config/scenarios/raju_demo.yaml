@@ -1,0 +1,37 @@
+demo_date: 2026-10-30                    # Friday
+demo_now: "2026-10-30T20:05:00+05:30"    # data on the demo date stops here
+merchant:
+  id: M_KOR_RES_001
+  name: Raju Family Restaurant
+  category: restaurant
+  locality: KOR
+  base_daily_revenue_target: 45000       # base_m tuned so a normal Friday ≈ ₹45,000
+weather_override:                         # demo-day rain is scripted (real archive won't have it yet)
+  locality: KOR
+  date: 2026-10-30
+  hours: {17: 5.0, 18: 6.0, 19: 5.0, 20: 4.0, 21: 3.0}   # mm/h
+  label: scripted
+demo_day_noise_shape: 200                # hourly noise on the demo day (normal days: 20)
+demo_day_counts: expected                # demo day uses round(λ) instead of a Poisson draw
+lapsed_regulars:
+  merchant: M_KOR_RES_001
+  friday_evening_regulars: 30            # regulars whose preferred slot is Friday 18–22
+  lapse_start: 2026-10-09                # 3 weeks before; a group stops coming
+  lapse_count: 12                         # of those 30, how many stop visiting (tuned to targets_check)
+products:
+  - {id: P_RAJU_COMBO, name: Family combo, mrp: 699, price: 649, cost: 290, is_combo: true}
+campaign_truth:                          # used only by simulate.py, never by strategy.py
+  family_combo_lapsed: {treat_return_p: 0.40, holdout_return_p: 0.15, avg_ticket: 650}
+thin_history_merchant:
+  id: M_KOR_CAF_NEW
+  name: Nayi Dukaan Café
+  category: cafe
+  opened_on: 2026-10-09                  # 3 weeks of history
+targets_check:                           # build_dataset prints these; tune until within range
+  evening_drop_pct: [-21, -15]
+  peer_drop_pct: [-15, -9]
+policy:                                  # merchant_policy overrides for the demo merchant
+  daily_offer_budget: 2000
+offer:                                   # the combo offer the strategy engine proposes
+  product_id: P_RAJU_COMBO
+  discount: 100                          # ₹ off per redemption (649 → 549)

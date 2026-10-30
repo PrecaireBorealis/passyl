@@ -1,0 +1,20 @@
+date_start: 2025-10-01
+date_end:   2026-10-30          # Friday; demo day
+timezone: Asia/Kolkata
+seeds: {dev: 7, test: 42}        # tune on 7, report benchmark on 42
+localities:
+  - {id: KOR, city: Bengaluru, name: Koramangala,   lat: 12.9352, lon: 77.6245, txn_level: true}   # demo cluster
+  - {id: IND, city: Bengaluru, name: Indiranagar,   lat: 12.9784, lon: 77.6408, txn_level: false}
+  - {id: JAY, city: Bengaluru, name: Jayanagar,     lat: 12.9308, lon: 77.5838, txn_level: false}
+  - {id: KOT, city: Pune,      name: Kothrud,       lat: 18.5074, lon: 73.8077, txn_level: false}
+  - {id: MAL, city: Jaipur,    name: Malviya Nagar, lat: 26.8549, lon: 75.8243, txn_level: false}
+merchants_per_locality:          # 70 per locality, 350 total
+  restaurant: 14
+  kirana: 12
+  cafe: 10
+  sweet_shop: 8
+  pharmacy: 8
+  salon: 6
+  apparel: 6
+  electronics: 6
+placement_radius_km: 1.5          # random points around locality centre

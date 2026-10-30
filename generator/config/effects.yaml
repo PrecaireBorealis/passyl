@@ -1,0 +1,55 @@
+# Assumptions: inputs the engine must recover, not facts.
+open_hours:      {restaurant: [11,23], kirana: [7,22], cafe: [8,23], sweet_shop: [9,22],
+                  pharmacy: [8,23], salon: [10,21], apparel: [11,22], electronics: [11,21]}
+daily_txn_base:  {restaurant: 110, kirana: 160, cafe: 140, sweet_shop: 80, pharmacy: 90,
+                  salon: 20, apparel: 25, electronics: 8}
+ticket_lognorm:  {restaurant: [5.70, 0.45], kirana: [5.10, 0.70], cafe: [5.30, 0.40],
+                  sweet_shop: [5.60, 0.60], pharmacy: [5.40, 0.70], salon: [6.20, 0.50],
+                  apparel: [7.20, 0.60], electronics: [8.30, 0.80]}   # exp(5.7) ≈ ₹300
+rain_beta_type:  {restaurant: -0.30, kirana: -0.08, cafe: -0.35, sweet_shop: -0.20, pharmacy: 0.0,
+                  salon: -0.45, apparel: -0.40, electronics: -0.30}  # at 10 mm/h; ≈ -26% for restaurant
+rain_late_factor: {restaurant: 0.4, cafe: 0.4}   # after 21:00 the rain penalty is scaled by this (delivery demand)
+# Relative weight of each hour 0..23 inside open hours (normalised per type).
+hour_profile:
+  restaurant:  [0,0,0,0,0,0,0,0,0,0,0, 3,8,10,7,3,2,3,6,10,12,10,5,0]
+  kirana:      [0,0,0,0,0,0,0, 4,7,8,7,6,5,4,4,5,6,8,10,10,8,5,0,0]
+  cafe:        [0,0,0,0,0,0,0,0, 5,8,7,6,6,6,7,8,9,9,8,7,6,4,2,0]
+  sweet_shop:  [0,0,0,0,0,0,0,0,0, 3,5,6,6,5,4,5,7,9,10,9,7,4,0,0]
+  pharmacy:    [0,0,0,0,0,0,0,0, 4,7,8,8,7,6,5,5,6,7,8,8,7,6,4,0]
+  salon:       [0,0,0,0,0,0,0,0,0,0, 6,8,8,7,6,6,7,9,10,9,6,0,0,0]
+  apparel:     [0,0,0,0,0,0,0,0,0,0,0, 3,5,6,6,6,7,8,10,10,8,5,0,0]
+  electronics: [0,0,0,0,0,0,0,0,0,0,0, 4,6,7,7,7,8,9,10,9,7,0,0,0]
+dow_profile:     # Mon..Sun multipliers
+  restaurant:  [0.85, 0.85, 0.90, 0.95, 1.20, 1.35, 1.25]
+  kirana:      [1.00, 0.95, 0.95, 0.95, 1.00, 1.10, 1.15]
+  cafe:        [0.95, 0.95, 0.95, 1.00, 1.10, 1.25, 1.20]
+  sweet_shop:  [0.90, 0.90, 0.90, 0.95, 1.00, 1.15, 1.25]
+  pharmacy:    [1.05, 1.00, 1.00, 1.00, 1.00, 0.95, 0.90]
+  salon:       [0.75, 0.85, 0.90, 0.95, 1.05, 1.35, 1.30]
+  apparel:     [0.80, 0.80, 0.85, 0.90, 1.00, 1.30, 1.40]
+  electronics: [0.85, 0.85, 0.90, 0.90, 1.00, 1.25, 1.30]
+season:          # Jan..Dec multipliers (same for all types, keep mild)
+  all: [0.97, 0.97, 1.00, 1.00, 0.98, 0.95, 0.94, 0.96, 0.98, 1.02, 1.05, 1.06]
+festival_effects:   # multiplier and day offsets around the festival date (0 = festival day)
+  sweet_shop: {Diwali: {mult: 2.6, days: [-3, 0]}, Raksha Bandhan: {mult: 2.0, days: [-2, 0]},
+               Holi: {mult: 1.6, days: [-2, 0]}, Ganesh Chaturthi: {mult: 1.5, days: [-1, 0]}}
+  restaurant: {Diwali: {mult: 0.7, days: [0, 0]}, New Year's Day: {mult: 1.5, days: [-1, -1]},
+               Dussehra: {mult: 1.2, days: [0, 0]}}
+  apparel:    {Diwali: {mult: 1.8, days: [-10, -1]}, Id-ul-Fitr: {mult: 1.5, days: [-5, -1]}}
+  electronics: {Diwali: {mult: 1.7, days: [-10, -1]}, Dhanteras: {mult: 2.0, days: [0, 0]}}
+customers:
+  pool_size:      {restaurant: 1800, kirana: 1500, cafe: 2000, sweet_shop: 1500, pharmacy: 1400,
+                   salon: 400, apparel: 900, electronics: 500}
+  regular_share_of_txns: {restaurant: 0.35, kirana: 0.55, cafe: 0.40, sweet_shop: 0.30,
+                          pharmacy: 0.45, salon: 0.50, apparel: 0.20, electronics: 0.10}
+  regulars_fraction_of_pool: 0.05     # 5% of customers are regulars
+  opt_in_rate: 0.6                    # consent flag for offers/messages
+  churn_fraction: 0.10                # frequent non-regulars whose activity stops before date_end (natural churn)
+  walkin_share: 0.70                  # share of non-regular txns from one-off walk-ins (passers-by, tourists)
+priors:
+  combo_lapsed:        {p_t: 0.35, p_c: 0.15}
+  winback_message:     {p_t: 0.22, p_c: 0.15}
+  delivery_combo_rain: {p_t: 0.25, p_c: 0.12}
+  gross_margin:        {restaurant: 0.55, cafe: 0.60, kirana: 0.18, sweet_shop: 0.45, pharmacy: 0.22,
+                        salon: 0.60, apparel: 0.45, electronics: 0.15}
+  flat_discount_uplift_per_d: 0.6     # e = 0.6 × d
